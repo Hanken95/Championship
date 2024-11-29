@@ -1,11 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Championship.Data.Data;
+using Championship.API.Extensions;
 
 namespace Championship.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddDbContext<ChampionshipContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("ChampionshipContext") ?? throw new InvalidOperationException("Connection string 'ChampionshipContext' not found.")));
 
             // Add services to the container.
 
@@ -23,6 +29,7 @@ namespace Championship.API
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                await app.SeedDataAsync();
             }
 
             app.UseHttpsRedirection();
