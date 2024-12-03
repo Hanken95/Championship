@@ -7,24 +7,31 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Championchip.Core.Entities;
 using Championship.Data.Data;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Championchip.Core.DTOs;
 
 namespace Championship.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/tournaments/{tournamentId}/games")]
     [ApiController]
-    public class GamesController(ChampionshipContext context) : ControllerBase
+    public class GamesController(ChampionshipContext context, IMapper mapper) : ControllerBase
     {
 
         // GET: api/Games
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Game>>> GetGame()
+        public async Task<ActionResult<IEnumerable<GameDTO>>> GetGames(int tournamentId)
         {
-            return await context.Games.ToListAsync();
+            if (!await context.Tournaments.AnyAsync(t => t.Id == tournamentId))
+            {
+                return NotFound();
+            }
+            return await context.Games.Where(g => g.TournamentId == tournamentId).ProjectTo<GameDTO>(mapper.ConfigurationProvider).ToListAsync();
         }
 
         // GET: api/Games/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Game>> GetGame(int id)
+        public async Task<ActionResult<GameDTO>> GetGame(int id)
         {
             var game = await context.Games.FindAsync(id);
 
@@ -33,7 +40,7 @@ namespace Championship.API.Controllers
                 return NotFound();
             }
 
-            return game;
+            return mapper.Map<GameDTO>(game);
         }
 
         // PUT: api/Games/5

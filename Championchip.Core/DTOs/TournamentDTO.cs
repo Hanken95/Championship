@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Championchip.Core.Entities
+namespace Championchip.Core.DTOs
 {
-    public class Tournament
+    public record TournamentDTO
     {
-        public int Id {  get; set; }
+        public int Id { get; set; }
         public required string Title { get; set; }
         public DateTime StartDate { get; set; }
-        public ICollection<Game> Games { get; set; } = [];
+        public DateTime EndDate => StartDate.AddMonths(3);
     }
 }

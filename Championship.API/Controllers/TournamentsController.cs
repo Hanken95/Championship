@@ -7,24 +7,28 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Championchip.Core.Entities;
 using Championship.Data.Data;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Championchip.Core.DTOs;
+using Bogus.DataSets;
 
 namespace Championship.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/tournaments")]
     [ApiController]
-    public class TournamentsController(ChampionshipContext context) : ControllerBase
+    public class TournamentsController(ChampionshipContext context, IMapper mapper) : ControllerBase
     {
 
         // GET: api/Tournaments
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Tournament>>> GetTournament()
+        public async Task<ActionResult<IEnumerable<TournamentDTO>>> GetTournament()
         {
-            return await context.Tournaments.ToListAsync();
+            return await context.Tournaments.ProjectTo<TournamentDTO>(mapper.ConfigurationProvider).ToListAsync();
         }
 
         // GET: api/Tournaments/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Tournament>> GetTournament(int id)
+        public async Task<ActionResult<TournamentDTO>> GetTournament(int id)
         {
             var tournament = await context.Tournaments.FindAsync(id);
 
@@ -33,7 +37,7 @@ namespace Championship.API.Controllers
                 return NotFound();
             }
 
-            return tournament;
+            return mapper.Map<TournamentDTO>(tournament);
         }
 
         // PUT: api/Tournaments/5
@@ -70,12 +74,15 @@ namespace Championship.API.Controllers
         // POST: api/Tournaments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Tournament>> PostTournament(Tournament tournament)
+        public async Task<ActionResult<TournamentDTO>> PostTournament(TournamentCreateDTO dto)
         {
+            Tournament tournament = mapper.Map<Tournament>(dto);
             context.Tournaments.Add(tournament);
             await context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTournament", new { id = tournament.Id }, tournament);
+            var createdTournament = mapper.Map<TournamentDTO>(tournament);
+
+            return CreatedAtAction(nameof(GetTournament), new { id = createdTournament.Id }, createdTournament);
         }
 
         // DELETE: api/Tournaments/5
