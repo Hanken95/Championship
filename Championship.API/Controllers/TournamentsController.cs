@@ -21,9 +21,10 @@ namespace Championship.API.Controllers
 
         // GET: api/Tournaments
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDTO>>> GetTournament()
+        public async Task<ActionResult<IEnumerable<TournamentDTO>>> GetTournament(bool includeGames)
         {
-            return await context.Tournaments.ProjectTo<TournamentDTO>(mapper.ConfigurationProvider).ToListAsync();
+            return Ok(includeGames ? mapper.Map<IEnumerable<TournamentDTO>>(await context.Tournaments.Include(t => t.Games).ToListAsync()) :
+                                     mapper.Map<IEnumerable<TournamentDTO>>(await context.Tournaments.ToListAsync()));
         }
 
         // GET: api/Tournaments/5
@@ -43,14 +44,20 @@ namespace Championship.API.Controllers
         // PUT: api/Tournaments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTournament(int id, Tournament tournament)
+        public async Task<IActionResult> PutTournament(int id, TournamentUpdateDTO dto)
         {
-            if (id != tournament.Id)
+            if (id != dto.Id)
             {
                 return BadRequest();
             }
 
-            context.Entry(tournament).State = EntityState.Modified;
+            var existingTournament = await context.Tournaments.FindAsync(id);
+            if (existingTournament == null)
+            {
+                return NotFound();
+            }
+
+            mapper.Map(dto, existingTournament);
 
             try
             {
@@ -68,7 +75,7 @@ namespace Championship.API.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(mapper.Map<TournamentDTO>(existingTournament));
         }
 
         // POST: api/Tournaments

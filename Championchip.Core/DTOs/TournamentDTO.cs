@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Championchip.Core.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,6 @@ namespace Championchip.Core.DTOs
         public required string Title { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate => StartDate.AddMonths(3);
+        public ICollection<Game> Games { get; set; } = [];
     }
 }

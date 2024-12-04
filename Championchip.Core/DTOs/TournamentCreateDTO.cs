@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace Championchip.Core.DTOs
 {
-    public class TournamentCreateDTO
+    public record TournamentCreateDTO : TournamentForManupulationDTO
     {
-        public required string Title { get; set; }
-        public DateTime StartDate { get; set; }
+        
     }
 }
