@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Championship.Data.Data;
 using Championship.API.Extensions;
+using Championchip.Core.Repositories;
+using Championship.Data.Repositories;
 
 namespace Championship.API
 {
@@ -22,6 +24,7 @@ namespace Championship.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(TournamentMappings));
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             var app = builder.Build();
 

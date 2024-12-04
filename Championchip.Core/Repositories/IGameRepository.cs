@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 
 namespace Championchip.Core.Repositories
 {
-    public interface ITournamentRepository : IRepositoryBase<Tournament>
+    public interface IGameRepository :IRepositoryBase<Game>
     {
-        
-
     }
 }
