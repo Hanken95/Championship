@@ -14,5 +14,13 @@ namespace Championship.Data.Repositories
 {
     public class TournamentRepository(ChampionshipContext context) : RepositoryBase<Tournament>(context), ITournamentRepository
     {
+        public async Task<IEnumerable<Tournament>> GetAllAsync(bool includeGames)
+        {
+            if (includeGames)
+            {
+                return await DbSet.Include(t => t.Games).ToListAsync();
+            }
+            return await GetAllAsync();
+        }
     }
 }

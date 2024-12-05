@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Championship.Data.Repositories
 {
-    public class RepositoryBase<T>(ChampionshipContext context) : IRepositoryBase<T> where T : class
+    public abstract class RepositoryBase<T>(ChampionshipContext context) : IRepositoryBase<T> where T : class
     {
         protected DbSet<T> DbSet { get; set; } = context.Set<T>();
 
@@ -19,9 +19,13 @@ namespace Championship.Data.Repositories
             DbSet.Add(entity);
         }
 
-        public async Task<bool> AnyAsync(int id)
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> conditions)
         {
-            return await DbSet.FindAsync(id) == null;
+            return await DbSet.AnyAsync(conditions);
+        }
+        public async Task<bool> AnyAsync()
+        {
+            return await DbSet.AnyAsync();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
@@ -29,9 +33,9 @@ namespace Championship.Data.Repositories
             return await DbSet.ToListAsync();
         }
 
-        public async Task<T?> GetAsync(int id)
+        public async Task<T?> GetAsync(Expression<Func<T, bool>> conditions)
         {
-            return await DbSet.FindAsync(id);
+            return await DbSet.FirstOrDefaultAsync(conditions);
         }
 
         public void Remove(T entity)
@@ -44,7 +48,7 @@ namespace Championship.Data.Repositories
             DbSet.Update(entity);
         }
         
-        public async Task<IEnumerable<T>> FindByCondition(Expression<Func<T, bool>> conditions)
+        public async Task<IEnumerable<T>> FindByConditionAsync(Expression<Func<T, bool>> conditions)
         {
             return await DbSet.Where(conditions).ToListAsync();
         }

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace Championchip.Core.DTOs
+namespace Championchip.Core.DTOs.TournamentDTOs
 {
     public record TournamentForManupulationDTO
     {

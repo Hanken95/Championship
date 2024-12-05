@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using Championchip.Core.DTOs;
+using Championchip.Core.DTOs.GameDTOs;
+using Championchip.Core.DTOs.TournamentDTOs;
 using Championchip.Core.Entities;
 using System;
 using System.Collections.Generic;
