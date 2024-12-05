@@ -12,6 +12,8 @@ using AutoMapper.QueryableExtensions;
 using Bogus.DataSets;
 using Championchip.Core.Repositories;
 using Championchip.Core.DTOs.TournamentDTOs;
+using Championchip.Core.DTOs.GameDTOs;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Championship.API.Controllers
 {
@@ -25,14 +27,16 @@ namespace Championship.API.Controllers
         public async Task<ActionResult<IEnumerable<TournamentDTO>>> GetTournament(bool includeGames)
         {
             if (!await unit.TournamentRepository.AnyAsync()) return NotFound("No tournaments in the database");
+
             return Ok(mapper.Map<IEnumerable<TournamentDTO>>(await unit.TournamentRepository.GetAllAsync(includeGames)));
         }
 
         // GET: api/Tournaments/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TournamentDTO>> GetTournament(int id)
-        {
-            var tournament = await unit.TournamentRepository.GetAsync(t => t.Id == id);
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<TournamentDTO>> GetTournament(int id, bool includeGames)
+        {   
+            
+            var tournament = await unit.TournamentRepository.GetAsync(t => t.Id == id, includeGames);
 
             if (tournament == null)
             {
@@ -44,14 +48,9 @@ namespace Championship.API.Controllers
 
         // PUT: api/Tournaments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> PutTournament(int id, TournamentUpdateDTO dto)
         {
-            if (id != dto.Id)
-            {
-                return BadRequest("The ids given do not match");
-            }
-
             var existingTournament = await unit.TournamentRepository.GetAsync(t => t.Id == id);
             if (existingTournament == null)
             {
@@ -66,9 +65,9 @@ namespace Championship.API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await TournamentExists(id))
+                if (!await unit.TournamentRepository.AnyAsync(e => e.Id == id))
                 {
-                    return StatusCode(500, "Could not be save to the databse");
+                    return StatusCode(500, "Could not be saved to the databse");
                 }
                 else
                 {
@@ -95,7 +94,7 @@ namespace Championship.API.Controllers
         }
 
         // DELETE: api/Tournaments/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteTournament(int id)
         {
             var tournament = await unit.TournamentRepository.GetAsync(t => t.Id == id);
@@ -110,9 +109,28 @@ namespace Championship.API.Controllers
             return NoContent();
         }
 
-        private async Task<bool> TournamentExists(int id)
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult> PatchTournament(int id, JsonPatchDocument<TournamentUpdateDTO> patchDocument)
         {
-            return await unit.TournamentRepository.AnyAsync(e => e.Id == id);
+            if (patchDocument == null)
+            {
+                return BadRequest("No patch document found");
+            }
+            
+            var tournamentToPatch = await unit.TournamentRepository.GetAsync(g => g.Id == id);
+            if (tournamentToPatch == null)
+            {
+                return NotFound($"There is no tournament with id: {id}");
+            }
+            
+            var dto = mapper.Map<TournamentUpdateDTO>(tournamentToPatch);
+
+            patchDocument.ApplyTo(dto);
+
+            mapper.Map(dto, tournamentToPatch);
+            await unit.CompleteAsync();
+
+            return NoContent();
         }
     }
 }

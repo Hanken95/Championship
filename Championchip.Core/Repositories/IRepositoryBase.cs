@@ -11,6 +11,6 @@ namespace Championchip.Core.Repositories
         Task<T?> GetAsync(Expression<Func<T, bool>> conditions);
         void Remove(T entity);
         void Update(T entity);
-        Task<IEnumerable<T>> FindByConditionAsync(Expression<Func<T, bool>> conditions);
+        Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> conditions);
     }
 }

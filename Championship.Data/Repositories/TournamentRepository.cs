@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +22,12 @@ namespace Championship.Data.Repositories
                 return await DbSet.Include(t => t.Games).ToListAsync();
             }
             return await GetAllAsync();
+        }
+        public async Task<Tournament?> GetAsync(Expression<Func<Tournament, bool>> conditions, bool includeGames)
+        {
+            if(includeGames) return await DbSet.Include(t => t.Games).FirstOrDefaultAsync(conditions);
+
+            return await DbSet.FirstOrDefaultAsync(conditions);
         }
     }
 }

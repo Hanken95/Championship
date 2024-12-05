@@ -33,6 +33,11 @@ namespace Championship.Data.Repositories
             return await DbSet.ToListAsync();
         }
 
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> conditions)
+        {
+            return await DbSet.Where(conditions).ToListAsync();
+        }
+
         public async Task<T?> GetAsync(Expression<Func<T, bool>> conditions)
         {
             return await DbSet.FirstOrDefaultAsync(conditions);
@@ -48,9 +53,5 @@ namespace Championship.Data.Repositories
             DbSet.Update(entity);
         }
         
-        public async Task<IEnumerable<T>> FindByConditionAsync(Expression<Func<T, bool>> conditions)
-        {
-            return await DbSet.Where(conditions).ToListAsync();
-        }
     }
 }

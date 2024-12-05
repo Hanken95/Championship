@@ -15,6 +15,7 @@ namespace Championship.Data.Data
         public TournamentMappings()
         {
             CreateMap<Tournament, TournamentDTO>();
+            CreateMap<Tournament, TournamentUpdateDTO>();
             CreateMap<TournamentCreateDTO, Tournament>();
             CreateMap<TournamentUpdateDTO, Tournament>();
 
