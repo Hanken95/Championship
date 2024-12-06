@@ -7,10 +7,10 @@ namespace Championchip.Core.Repositories
         void Add(T entity);
         Task<bool> AnyAsync(Expression<Func<T, bool>> conditions);
         Task<bool> AnyAsync();
-        Task<IEnumerable<T>> GetAllAsync();
         Task<T?> GetAsync(Expression<Func<T, bool>> conditions);
+        Task<IEnumerable<T>> GetAllAsync();
+        Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> conditions);
         void Remove(T entity);
         void Update(T entity);
-        Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> conditions);
     }
 }

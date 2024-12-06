@@ -14,7 +14,7 @@ using Championship.Data.Repositories;
 using Championchip.Core.Repositories;
 using Championchip.Core.DTOs.GameDTOs;
 
-namespace Championship.API.Controllers
+namespace Championship.Presentation.Controllers
 {
     [Route("api")]
     [ApiController]
@@ -47,7 +47,7 @@ namespace Championship.API.Controllers
             if (!await unit.TournamentRepository.AnyAsync()) return NotFound("No tournaments in the database");
 
             var tournament = await unit.TournamentRepository.GetAsync(t => t.Id == tournamentId, true);
-            if (tournament == null)  return NotFound($"No tournament with id {tournamentId} in the database");
+            if (tournament == null) return NotFound($"No tournament with id {tournamentId} in the database");
 
             var games = await unit.GameRepository.GetAllAsync(g => g.TournamentId == tournamentId);
             if (games.Count() == 0) return NotFound("No games in the tournament");

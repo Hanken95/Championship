@@ -15,7 +15,7 @@ using Championchip.Core.DTOs.TournamentDTOs;
 using Championchip.Core.DTOs.GameDTOs;
 using Microsoft.AspNetCore.JsonPatch;
 
-namespace Championship.API.Controllers
+namespace Championship.Presentation.Controllers
 {
     [Route("api/tournaments")]
     [ApiController]
@@ -34,8 +34,8 @@ namespace Championship.API.Controllers
         // GET: api/Tournaments/5
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TournamentDTO>> GetTournament(int id, bool includeGames)
-        {   
-            
+        {
+
             var tournament = await unit.TournamentRepository.GetAsync(t => t.Id == id, includeGames);
 
             if (tournament == null)
@@ -116,13 +116,13 @@ namespace Championship.API.Controllers
             {
                 return BadRequest("No patch document found");
             }
-            
+
             var tournamentToPatch = await unit.TournamentRepository.GetAsync(g => g.Id == id);
             if (tournamentToPatch == null)
             {
                 return NotFound($"There is no tournament with id: {id}");
             }
-            
+
             var dto = mapper.Map<TournamentUpdateDTO>(tournamentToPatch);
 
             patchDocument.ApplyTo(dto);

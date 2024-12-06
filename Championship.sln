@@ -9,6 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Championship.Data", "Champi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Championship.API", "Championship.API\Championship.API.csproj", "{AA689298-CBDF-4015-91A4-2FC960D91811}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Championship.Presentation", "Championship.Presentation\Championship.Presentation.csproj", "{3D4FA219-00C7-4055-851B-185F322C8F38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Championship.Services", "Champpionship.Services\Championship.Services.csproj", "{6824CDDC-359C-4DBD-987B-77AA3E45F173}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service.Contracts", "Service.Contracts\Service.Contracts.csproj", "{A0813D3A-176E-40AC-A9E9-831151753CDA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +33,18 @@ Global
 		{AA689298-CBDF-4015-91A4-2FC960D91811}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA689298-CBDF-4015-91A4-2FC960D91811}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA689298-CBDF-4015-91A4-2FC960D91811}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D4FA219-00C7-4055-851B-185F322C8F38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4FA219-00C7-4055-851B-185F322C8F38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4FA219-00C7-4055-851B-185F322C8F38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4FA219-00C7-4055-851B-185F322C8F38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6824CDDC-359C-4DBD-987B-77AA3E45F173}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6824CDDC-359C-4DBD-987B-77AA3E45F173}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6824CDDC-359C-4DBD-987B-77AA3E45F173}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6824CDDC-359C-4DBD-987B-77AA3E45F173}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0813D3A-176E-40AC-A9E9-831151753CDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0813D3A-176E-40AC-A9E9-831151753CDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0813D3A-176E-40AC-A9E9-831151753CDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0813D3A-176E-40AC-A9E9-831151753CDA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
