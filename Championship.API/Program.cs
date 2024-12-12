@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Championship.Data.Data;
 using Championship.API.Extensions;
 using Championchip.Core.Repositories;
 using Championship.Data.Repositories;
+using Championship.Services;
+using Service.Contracts;
+
 
 namespace Championship.API
 {
@@ -25,6 +27,8 @@ namespace Championship.API
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(TournamentMappings));
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IServiceManager, ServiceManager>();
+            builder.Services.ConfigureCors();
 
             var app = builder.Build();
 
@@ -37,6 +41,8 @@ namespace Championship.API
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("AllowAny");
 
             app.UseAuthorization();
 

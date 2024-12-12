@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Championchip.Core.DTOs;
+﻿using Championchip.Core.DTOs;
 using Championchip.Core.Entities;
 using Championchip.Core.Repositories;
 using Championship.Data.Data;

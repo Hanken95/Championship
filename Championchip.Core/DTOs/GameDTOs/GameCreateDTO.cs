@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace Championchip.Core.DTOs.GameDTOs
 {
-    public record GameUpdateDTO : GameForManupulationDTO
+    public record GameCreateDTO : GameForManupulationDTO
     {
-
     }
 }

@@ -1,49 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Championchip.Core.Entities;
-using Championship.Data.Data;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Bogus.DataSets;
 using Championchip.Core.Repositories;
 using Championchip.Core.DTOs.TournamentDTOs;
-using Championchip.Core.DTOs.GameDTOs;
 using Microsoft.AspNetCore.JsonPatch;
+using System.Data.Entity.Infrastructure;
+using Service.Contracts;
 
 namespace Championship.Presentation.Controllers
 {
     [Route("api/tournaments")]
     [ApiController]
-    public class TournamentsController(IMapper mapper, IUnitOfWork unit) : ControllerBase
+    public class TournamentsController(IServiceManager manager) : ControllerBase
     {
 
         // GET: api/Tournaments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TournamentDTO>>> GetTournament(bool includeGames)
         {
-            if (!await unit.TournamentRepository.AnyAsync()) return NotFound("No tournaments in the database");
+            if (!await manager.TournamentService.AnyAsync()) return NotFound("No tournaments in the database");
 
-            return Ok(mapper.Map<IEnumerable<TournamentDTO>>(await unit.TournamentRepository.GetAllAsync(includeGames)));
+            return Ok(await manager.TournamentService.GetAllAsync(includeGames));
         }
 
         // GET: api/Tournaments/5
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TournamentDTO>> GetTournament(int id, bool includeGames)
         {
-
-            var tournament = await unit.TournamentRepository.GetAsync(t => t.Id == id, includeGames);
-
-            if (tournament == null)
+            if (!await manager.TournamentService.AnyAsync(t => t.Id == id))
             {
-                return NotFound($"No tournament with id {id} in the database");
+                return NotFound($"There is no tournament with id: {id}");
             }
 
-            return Ok(mapper.Map<TournamentDTO>(tournament));
+            return Ok(await manager.TournamentService.GetAsync(t => t.Id == id, includeGames));
         }
 
         // PUT: api/Tournaments/5
@@ -51,21 +39,17 @@ namespace Championship.Presentation.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> PutTournament(int id, TournamentUpdateDTO dto)
         {
-            var existingTournament = await unit.TournamentRepository.GetAsync(t => t.Id == id);
-            if (existingTournament == null)
+            if (!await manager.TournamentService.AnyAsync(t => t.Id == id))
             {
-                return NotFound("Tournament not found");
+                return NotFound($"There is no tournament with id: {id}");
             }
-
-            mapper.Map(dto, existingTournament);
-
             try
             {
-                await unit.CompleteAsync();
+                await manager.TournamentService.PutAsync(id, dto);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await unit.TournamentRepository.AnyAsync(e => e.Id == id))
+                if (!await manager.TournamentService.AnyAsync(e => e.Id == id))
                 {
                     return StatusCode(500, "Could not be saved to the databse");
                 }
@@ -75,7 +59,7 @@ namespace Championship.Presentation.Controllers
                 }
             }
 
-            return Ok(mapper.Map<TournamentDTO>(existingTournament));
+            return Ok(manager.TournamentService.GetAsync(t => t.Id == id));
         }
 
         // POST: api/Tournaments
@@ -84,11 +68,8 @@ namespace Championship.Presentation.Controllers
         public async Task<ActionResult<TournamentDTO>> PostTournament(TournamentCreateDTO dto)
         {
             if (dto == null) return BadRequest("Incorrect input");
-            Tournament tournament = mapper.Map<Tournament>(dto);
-            unit.TournamentRepository.Add(tournament);
-            await unit.CompleteAsync();
 
-            var createdTournament = mapper.Map<TournamentDTO>(tournament);
+            var createdTournament = await manager.TournamentService.AddAsync(dto);
 
             return CreatedAtAction(nameof(GetTournament), new { id = createdTournament.Id }, createdTournament);
         }
@@ -97,14 +78,12 @@ namespace Championship.Presentation.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteTournament(int id)
         {
-            var tournament = await unit.TournamentRepository.GetAsync(t => t.Id == id);
-            if (tournament == null)
+            if (!await manager.TournamentService.AnyAsync(t => t.Id == id))
             {
-                return NotFound("Tournament not found in database");
+                return NotFound($"There is no tournament with id: {id}");
             }
 
-            unit.TournamentRepository.Remove(tournament);
-            await unit.CompleteAsync();
+            await manager.TournamentService.RemoveAsync(id);
 
             return NoContent();
         }
@@ -117,18 +96,12 @@ namespace Championship.Presentation.Controllers
                 return BadRequest("No patch document found");
             }
 
-            var tournamentToPatch = await unit.TournamentRepository.GetAsync(g => g.Id == id);
-            if (tournamentToPatch == null)
+            if (!await manager.TournamentService.AnyAsync(t => t.Id == id))
             {
                 return NotFound($"There is no tournament with id: {id}");
             }
 
-            var dto = mapper.Map<TournamentUpdateDTO>(tournamentToPatch);
-
-            patchDocument.ApplyTo(dto);
-
-            mapper.Map(dto, tournamentToPatch);
-            await unit.CompleteAsync();
+            await manager.TournamentService.PatchAsync(id, patchDocument);
 
             return NoContent();
         }

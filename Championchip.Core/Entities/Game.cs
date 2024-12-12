@@ -4,6 +4,7 @@ namespace Championchip.Core.Entities
 {
     public class Game
     {
+
         public int Id { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Title required")]
@@ -12,6 +13,7 @@ namespace Championchip.Core.Entities
 
         [Required(ErrorMessage = "Time required")]
         public DateTime Time { get; set; }
+        [Required(ErrorMessage = "Games must be a part of a tournament")]
         public int TournamentId { get; set; }
     }
 }

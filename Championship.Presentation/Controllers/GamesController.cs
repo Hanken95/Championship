@@ -1,73 +1,66 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Championchip.Core.Entities;
-using Championship.Data.Data;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.JsonPatch;
-using Championship.Data.Repositories;
 using Championchip.Core.Repositories;
 using Championchip.Core.DTOs.GameDTOs;
+using Service.Contracts;
 
 namespace Championship.Presentation.Controllers
 {
     [Route("api")]
     [ApiController]
-    public class GamesController(IMapper mapper, IUnitOfWork unit) : ControllerBase
+    public class GamesController(IServiceManager manager) : ControllerBase
     {
 
         // GET: api/Games
         [HttpGet("games")]
         public async Task<ActionResult<IEnumerable<GameDTO>>> GetGames()
         {
-            if (!await unit.GameRepository.AnyAsync()) return NotFound("No games in the database");
+            if (!await manager.GameService.AnyAsync()) return NotFound("No games in the database");
 
-            return Ok(mapper.Map<IEnumerable<GameDTO>>(await unit.GameRepository.GetAllAsync()));
-        }
-        [HttpGet("games/{title}")]
-        public async Task<ActionResult<IEnumerable<GameDTO>>> GetGames(string title)
-        {
-            if (!await unit.GameRepository.AnyAsync()) return NotFound("No games in the database");
-
-            if (string.IsNullOrWhiteSpace(title)) return BadRequest("Incorrect input");
-
-            if (!await unit.GameRepository.AnyAsync(g => g.Title == title)) return NotFound($"No game with title '{title}' was found");
-
-            return Ok(mapper.Map<IEnumerable<GameDTO>>(await unit.GameRepository.GetAllAsync(g => g.Title == title)));
+            return Ok(await manager.GameService.GetAllAsync());
         }
 
         [HttpGet("tournaments/{tournamentId:int}/games")]
         public async Task<ActionResult<IEnumerable<GameDTO>>> GetGames(int tournamentId)
         {
-            if (!await unit.TournamentRepository.AnyAsync()) return NotFound("No tournaments in the database");
+            if (!await manager.TournamentService.AnyAsync()) return NotFound("No tournaments in the database");
 
-            var tournament = await unit.TournamentRepository.GetAsync(t => t.Id == tournamentId, true);
+            var tournament = await manager.TournamentService.GetAsync(t => t.Id == tournamentId, true);
             if (tournament == null) return NotFound($"No tournament with id {tournamentId} in the database");
 
-            var games = await unit.GameRepository.GetAllAsync(g => g.TournamentId == tournamentId);
-            if (games.Count() == 0) return NotFound("No games in the tournament");
+            var games = await manager.GameService.GetAllAsync(g => g.TournamentId == tournamentId);
+            if (!games.Any()) return NotFound("No games in the tournament");
 
-            return Ok(mapper.Map<IEnumerable<GameDTO>>(games));
+            return Ok(games);
         }
+
+        [HttpGet("games/{title}")]
+        public async Task<ActionResult<IEnumerable<GameDTO>>> GetGame(string title)
+        {
+            if (!await manager.GameService.AnyAsync()) return NotFound("No games in the database");
+
+            if (string.IsNullOrWhiteSpace(title)) return BadRequest("Incorrect input");
+
+            if (!await manager.GameService.AnyAsync(g => g.Title == title)) return NotFound($"No game with title '{title}' was found");
+
+            return Ok(await manager.GameService.GetAllAsync(g => g.Title == title));
+        }
+
 
         // GET: api/Games/5
         [HttpGet("games/{id:int}")]
         public async Task<ActionResult<GameDTO>> GetGame(int id)
         {
-            if (!await unit.GameRepository.AnyAsync()) return NotFound("No games in the database");
-            var game = await unit.GameRepository.GetAsync(g => g.Id == id);
+            if (!await manager.GameService.AnyAsync()) return NotFound("No games in the database");
+            var game = await manager.GameService.GetAsync(g => g.Id == id);
 
             if (game == null)
             {
                 return NotFound($"No game with id {id} exists");
             }
 
-            return Ok(mapper.Map<GameDTO>(game));
+            return Ok(game);
         }
 
         //// PUT: api/Games/5
@@ -116,14 +109,12 @@ namespace Championship.Presentation.Controllers
         [HttpDelete("games/{id:int}")]
         public async Task<IActionResult> DeleteGame(int id)
         {
-            var game = await unit.GameRepository.GetAsync(g => g.Id == id);
-            if (game == null)
+            if (!await manager.GameService.AnyAsync())
             {
                 return NotFound($"No game with id {id} exists");
             }
 
-            unit.GameRepository.Remove(game);
-            await unit.CompleteAsync();
+            await manager.GameService.RemoveAsync(id);
 
             return NoContent();
         }
@@ -137,36 +128,23 @@ namespace Championship.Presentation.Controllers
             {
                 return BadRequest("No patch document found");
             }
-            Game gameToPatch = null;
+            if (await manager.GameService.AnyAsync(g => g.Id == id))
+            {
+                return NotFound($"There is no game with id: {id}");
+            }
             if (tournamentId != null)
             {
-                if (!await unit.TournamentRepository.AnyAsync(t => t.Id == tournamentId))
+                if (!await manager.TournamentService.AnyAsync(t => t.Id == tournamentId))
                 {
                     return NotFound("Chosen tournament not found in database");
                 }
-                gameToPatch = await unit.GameRepository.GetAsync(g => g.TournamentId == tournamentId && g.Id == id);
-                if (gameToPatch == null)
+                if (!await manager.GameService.AnyAsync(g => g.TournamentId == tournamentId && g.Id == id))
                 {
                     return NotFound($"The tournament does not contain a game with id: {id}");
                 }
             }
-            else
-            {
-                gameToPatch = await unit.GameRepository.GetAsync(g => g.Id == id);
-                if (gameToPatch == null)
-                {
-                    return NotFound($"There is no game with id: {id}");
-                }
-            }
 
-
-
-            var dto = mapper.Map<GameUpdateDTO>(gameToPatch);
-
-            patchDocument.ApplyTo(dto);
-
-            mapper.Map(dto, gameToPatch);
-            await unit.CompleteAsync();
+            await manager.GameService.PatchAsync(id, patchDocument);
 
             return NoContent();
         }

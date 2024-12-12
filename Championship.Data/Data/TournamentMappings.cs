@@ -20,7 +20,9 @@ namespace Championship.Data.Data
             CreateMap<TournamentUpdateDTO, Tournament>();
 
             CreateMap<Game, GameDTO>();
+            CreateMap<Game, GameUpdateDTO>();
             CreateMap<GameUpdateDTO, Game>().ReverseMap();
+            CreateMap<GameCreateDTO, Game>().ReverseMap();
         }
     }
 }
