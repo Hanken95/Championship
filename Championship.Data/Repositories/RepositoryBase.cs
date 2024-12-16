@@ -19,6 +19,10 @@ namespace Championship.Data.Repositories
             DbSet.Add(entity);
         }
 
+        public async Task<bool> AnyAsync(int id)
+        {
+            return await DbSet.FindAsync(id) == null;
+        }
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> conditions)
         {
             return await DbSet.AnyAsync(conditions);
@@ -30,18 +34,23 @@ namespace Championship.Data.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await DbSet.ToListAsync();
+             return await DbSet.ToListAsync();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> conditions)
         {
             return await DbSet.Where(conditions).ToListAsync();
         }
+        public async Task<T?> GetAsync(int id)
+        {
+            return await DbSet.FindAsync(id);
+        }
 
         public async Task<T?> GetAsync(Expression<Func<T, bool>> conditions)
         {
             return await DbSet.FirstOrDefaultAsync(conditions);
         }
+        
 
         public void Remove(T entity)
         {
@@ -52,6 +61,6 @@ namespace Championship.Data.Repositories
         {
             DbSet.Update(entity);
         }
-        
+
     }
 }

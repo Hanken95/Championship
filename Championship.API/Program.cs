@@ -5,6 +5,7 @@ using Championchip.Core.Repositories;
 using Championship.Data.Repositories;
 using Championship.Services;
 using Service.Contracts;
+using Championship.Presentation;
 
 
 namespace Championship.API
@@ -21,13 +22,15 @@ namespace Championship.API
 
             builder.Services.AddControllers(opt => opt.ReturnHttpNotAcceptable = true)
                 .AddNewtonsoftJson()
-                .AddXmlDataContractSerializerFormatters();
+                .AddXmlDataContractSerializerFormatters()
+                .AddApplicationPart(typeof(AssemblyReference).Assembly);
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(TournamentMappings));
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<IServiceManager, ServiceManager>();
+            builder.Services.ConfigureServiceLayerServices();
+            builder.Services.ConfigureRepositories();
+
             builder.Services.ConfigureCors();
 
             var app = builder.Build();

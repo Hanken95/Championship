@@ -4,21 +4,24 @@ using Microsoft.AspNetCore.JsonPatch;
 using Championchip.Core.Repositories;
 using Championchip.Core.DTOs.GameDTOs;
 using Service.Contracts;
+using Championchip.Core.Responses;
 
 namespace Championship.Presentation.Controllers
 {
     [Route("api")]
     [ApiController]
-    public class GamesController(IServiceManager manager) : ControllerBase
+    public class GamesController(IServiceManager manager) : ApiControllerBase
     {
 
         // GET: api/Games
         [HttpGet("games")]
         public async Task<ActionResult<IEnumerable<GameDTO>>> GetGames()
         {
-            if (!await manager.GameService.AnyAsync()) return NotFound("No games in the database");
+            ApiBaseResponse response = await manager.GameService.GetAllAsync();
 
-            return Ok(await manager.GameService.GetAllAsync());
+            return response.Success ?
+                Ok(response.GetOkResult<IEnumerable<GameDTO>>()) :
+                ProcessError(response);
         }
 
         [HttpGet("tournaments/{tournamentId:int}/games")]
@@ -26,17 +29,15 @@ namespace Championship.Presentation.Controllers
         {
             if (!await manager.TournamentService.AnyAsync()) return NotFound("No tournaments in the database");
 
-            var tournament = await manager.TournamentService.GetAsync(t => t.Id == tournamentId, true);
-            if (tournament == null) return NotFound($"No tournament with id {tournamentId} in the database");
+            ApiBaseResponse response = await manager.GameService.GetAllAsync(tournamentId);
 
-            var games = await manager.GameService.GetAllAsync(g => g.TournamentId == tournamentId);
-            if (!games.Any()) return NotFound("No games in the tournament");
-
-            return Ok(games);
+            return response.Success ?
+                Ok(response.GetOkResult<IEnumerable<GameDTO>>()) :
+                ProcessError(response);
         }
 
         [HttpGet("games/{title}")]
-        public async Task<ActionResult<IEnumerable<GameDTO>>> GetGame(string title)
+        public async Task<ActionResult<IEnumerable<GameDTO>>> GetGames(string title)
         {
             if (!await manager.GameService.AnyAsync()) return NotFound("No games in the database");
 
@@ -53,14 +54,11 @@ namespace Championship.Presentation.Controllers
         public async Task<ActionResult<GameDTO>> GetGame(int id)
         {
             if (!await manager.GameService.AnyAsync()) return NotFound("No games in the database");
-            var game = await manager.GameService.GetAsync(g => g.Id == id);
+            ApiBaseResponse response = await manager.GameService.GetAsync(id);
 
-            if (game == null)
-            {
-                return NotFound($"No game with id {id} exists");
-            }
-
-            return Ok(game);
+            return response.Success ?
+                Ok(response.GetOkResult<GameDTO>()) :
+                ProcessError(response);
         }
 
         //// PUT: api/Games/5
@@ -94,59 +92,47 @@ namespace Championship.Presentation.Controllers
         //    return NoContent();
         //}
 
-        //// POST: api/Games
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost]
-        //public async Task<ActionResult<Game>> PostGame(Game game)
-        //{
-        //    context.Games.Add(game);
-        //    await context.SaveChangesAsync();
+        // POST: api/Games
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost("games")]
+        public async Task<ActionResult<GameDTO>> PostGame(GameCreateDTO game)
+        {
+            ApiBaseResponse response = await manager.GameService.AddAsync(game);
 
-        //    return CreatedAtAction("GetGame", new { id = game.Id }, game);
-        //}
+            return response.Success ?
+                Ok(response.GetOkResult<GameDTO>()) :
+                ProcessError(response);
+        }
 
         // DELETE: api/Games/5
         [HttpDelete("games/{id:int}")]
         public async Task<IActionResult> DeleteGame(int id)
         {
-            if (!await manager.GameService.AnyAsync())
-            {
-                return NotFound($"No game with id {id} exists");
-            }
+            ApiBaseResponse response = await manager.GameService.RemoveAsync(id);
 
-            await manager.GameService.RemoveAsync(id);
-
-            return NoContent();
+            return response.Success ?
+                Ok(response.GetOkResult<GameDTO>()) :
+                ProcessError(response);
         }
 
 
         [HttpPatch("games/{id:int}")]
-        [HttpPatch("tournaments/{tournamentId}/games/{id:int}")]
-        public async Task<ActionResult> PatchGame(int? tournamentId, int id, JsonPatchDocument<GameUpdateDTO> patchDocument)
+        public async Task<ActionResult<GameDTO>> PatchGame(int id, JsonPatchDocument<GameUpdateDTO> patchDocument)
         {
             if (patchDocument == null)
             {
                 return BadRequest("No patch document found");
             }
-            if (await manager.GameService.AnyAsync(g => g.Id == id))
+            if (!await manager.GameService.AnyAsync(g => g.Id == id))
             {
                 return NotFound($"There is no game with id: {id}");
             }
-            if (tournamentId != null)
-            {
-                if (!await manager.TournamentService.AnyAsync(t => t.Id == tournamentId))
-                {
-                    return NotFound("Chosen tournament not found in database");
-                }
-                if (!await manager.GameService.AnyAsync(g => g.TournamentId == tournamentId && g.Id == id))
-                {
-                    return NotFound($"The tournament does not contain a game with id: {id}");
-                }
-            }
 
-            await manager.GameService.PatchAsync(id, patchDocument);
+            ApiBaseResponse response = await manager.GameService.PatchAsync(id, patchDocument);
 
-            return NoContent();
+            return response.Success ?
+                Ok(response.GetOkResult<GameDTO>()) :
+                ProcessError(response);
         }
     }
 }

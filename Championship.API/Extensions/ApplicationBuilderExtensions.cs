@@ -18,7 +18,7 @@ namespace Championship.API.Extensions
 
                 if (await db.Tournaments.AnyAsync()) return;
 
-                var tournaments = GenerateTournaments(5);
+                var tournaments = GenerateTournaments(30);
 
                 db.AddRange(tournaments);
 
@@ -32,7 +32,7 @@ namespace Championship.API.Extensions
             {
                 t.StartDate = f.Date.Soon(5);
                 t.Title = f.Vehicle.Type();
-                t.Games = GenerateGames(f.Random.Int(2, 10), t.StartDate);
+                t.Games = GenerateGames(f.Random.Int(4, 10), t.StartDate);
             });
 
             return faker.Generate(nrOfTournaments);

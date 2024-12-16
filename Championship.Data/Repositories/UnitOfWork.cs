@@ -8,12 +8,10 @@ using System.Threading.Tasks;
 
 namespace Championship.Data.Repositories
 {
-    public class UnitOfWork(ChampionshipContext context) : IUnitOfWork
+    public class UnitOfWork(ChampionshipContext context, Lazy<ITournamentRepository> tournamentRepository, Lazy<IGameRepository> gameRepository) : IUnitOfWork
     {
-
-        public ITournamentRepository TournamentRepository { get; } = new TournamentRepository(context);
-
-        public IGameRepository GameRepository { get; } = new GameRepository(context);
+        public ITournamentRepository TournamentRepository { get; } = tournamentRepository.Value;
+        public IGameRepository GameRepository { get; } = gameRepository.Value;
 
         public async Task CompleteAsync()
         {

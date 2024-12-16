@@ -1,4 +1,5 @@
 ﻿using Championchip.Core.Entities;
+using Championchip.Core.Request;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,9 @@ namespace Championchip.Core.Repositories
 {
     public interface ITournamentRepository : IRepositoryBase<Tournament>
     {
-        Task<IEnumerable<Tournament>> GetAllAsync(bool includeGames);
-        Task<Tournament?> GetAsync(Expression<Func<Tournament, bool>> conditions, bool includeGames);
+        Task<PagedList<Tournament>> GetAllAsync(TournamentRequestParams  CompanyRequestParams);
+        Task<PagedList<Tournament>> GetAllAsync(Expression<Func<Tournament, bool>> conditions, TournamentRequestParams  CompanyRequestParams);
+        Task<Tournament?> GetAsync(int id, TournamentRequestParams requestParams);
+        Task<Tournament?> GetAsync(Expression<Func<Tournament, bool>> conditions, TournamentRequestParams  CompanyRequestParams );
     }
 }

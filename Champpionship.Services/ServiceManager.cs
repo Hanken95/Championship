@@ -17,13 +17,13 @@ namespace Championship.Services
         public ITournamentService TournamentService => tournamentService.Value;
         public IGameService GameService => gameService.Value;
 
-        public ServiceManager(IUnitOfWork unit, IMapper mapper)
+        public ServiceManager(Lazy<ITournamentService> tournamentService, Lazy<IGameService> gameService)
         {
-            ArgumentNullException.ThrowIfNull(nameof(unit));
-            ArgumentNullException.ThrowIfNull(nameof(mapper));
+            ArgumentNullException.ThrowIfNull(nameof(tournamentService));
+            ArgumentNullException.ThrowIfNull(nameof(gameService));
 
-            tournamentService = new Lazy<ITournamentService>(() => new TournamentService(unit, mapper));
-            gameService = new Lazy<IGameService>(() => new GameService(unit, mapper));
+            this.tournamentService = tournamentService;
+            this.gameService = gameService;
         }
     }
 }

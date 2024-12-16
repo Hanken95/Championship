@@ -1,6 +1,7 @@
 ﻿using Championchip.Core.DTOs;
 using Championchip.Core.Entities;
 using Championchip.Core.Repositories;
+using Championchip.Core.Request;
 using Championship.Data.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,17 +15,29 @@ namespace Championship.Data.Repositories
 {
     public class TournamentRepository(ChampionshipContext context) : RepositoryBase<Tournament>(context), ITournamentRepository
     {
-        public async Task<IEnumerable<Tournament>> GetAllAsync(bool includeGames)
+        public async Task<PagedList<Tournament>> GetAllAsync(TournamentRequestParams  requestParams)
         {
-            if (includeGames)
-            {
-                return await DbSet.Include(t => t.Games).ToListAsync();
-            }
-            return await GetAllAsync();
+            var tournaments = requestParams.IncludeGames ? DbSet.Include(t => t.Games).AsQueryable() :
+                                                           DbSet.AsQueryable();
+
+            return await PagedList<Tournament>.CreateAsync(tournaments, requestParams.PageNumber, requestParams.PageSize);
+
         }
-        public async Task<Tournament?> GetAsync(Expression<Func<Tournament, bool>> conditions, bool includeGames)
+        public async Task<PagedList<Tournament>> GetAllAsync(Expression<Func<Tournament, bool>> conditions, TournamentRequestParams  requestParams)
         {
-            if(includeGames) return await DbSet.Include(t => t.Games).FirstOrDefaultAsync(conditions);
+            var tournaments = requestParams.IncludeGames ? DbSet.Where(conditions).Include(t => t.Games).AsQueryable() :
+                                                           DbSet.Where(conditions).AsQueryable();
+
+            return await PagedList<Tournament>.CreateAsync(tournaments, requestParams.PageNumber, requestParams.PageSize);
+
+        }
+        public async Task<Tournament?> GetAsync(int id, TournamentRequestParams requestParams)
+        {
+            return await GetAsync(t => t.Id == id, requestParams);
+        }
+        public async Task<Tournament?> GetAsync(Expression<Func<Tournament, bool>> conditions, TournamentRequestParams requestParams )
+        {
+            if(requestParams.IncludeGames) return await DbSet.Include(t => t.Games).FirstOrDefaultAsync(conditions);
 
             return await DbSet.FirstOrDefaultAsync(conditions);
         }

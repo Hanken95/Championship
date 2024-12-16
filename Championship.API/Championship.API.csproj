@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Championchip.Core\Championchip.Core.csproj" />
     <ProjectReference Include="..\Championship.Data\Championship.Data.csproj" />
+    <ProjectReference Include="..\Championship.Presentation\Championship.Presentation.csproj" />
     <ProjectReference Include="..\Champpionship.Services\Championship.Services.csproj" />
   </ItemGroup>
 

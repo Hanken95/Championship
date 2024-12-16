@@ -5,6 +5,10 @@ using Championchip.Core.DTOs.TournamentDTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using System.Data.Entity.Infrastructure;
 using Service.Contracts;
+using Championchip.Core.Request;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace Championship.Presentation.Controllers
 {
@@ -15,23 +19,27 @@ namespace Championship.Presentation.Controllers
 
         // GET: api/Tournaments
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDTO>>> GetTournament(bool includeGames)
+        public async Task<ActionResult<IEnumerable<TournamentDTO>>> GetTournaments([FromQuery]TournamentRequestParams requestParams)
         {
             if (!await manager.TournamentService.AnyAsync()) return NotFound("No tournaments in the database");
 
-            return Ok(await manager.TournamentService.GetAllAsync(includeGames));
+            (IEnumerable<TournamentDTO> companyDtos, MetaData metaData) result = await manager.TournamentService.GetAllAsync(requestParams);
+
+            Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(result.metaData));
+
+            return base.Ok(result.companyDtos);
         }
 
         // GET: api/Tournaments/5
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<TournamentDTO>> GetTournament(int id, bool includeGames)
+        public async Task<ActionResult<TournamentDTO>> GetTournament(int id, [FromQuery] TournamentRequestParams requestParams)
         {
             if (!await manager.TournamentService.AnyAsync(t => t.Id == id))
             {
                 return NotFound($"There is no tournament with id: {id}");
             }
 
-            return Ok(await manager.TournamentService.GetAsync(t => t.Id == id, includeGames));
+            return Ok(await manager.TournamentService.GetAsync(t => t.Id == id, requestParams));
         }
 
         // PUT: api/Tournaments/5
@@ -59,7 +67,7 @@ namespace Championship.Presentation.Controllers
                 }
             }
 
-            return Ok(manager.TournamentService.GetAsync(t => t.Id == id));
+            return Ok(manager.TournamentService.GetAsync(id));
         }
 
         // POST: api/Tournaments

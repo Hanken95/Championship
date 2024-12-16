@@ -2,6 +2,7 @@
 using Championchip.Core.DTOs.TournamentDTOs;
 using Championchip.Core.Entities;
 using Championchip.Core.Repositories;
+using Championchip.Core.Request;
 using Microsoft.AspNetCore.JsonPatch;
 using Service.Contracts;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Xml.XPath;
 
 namespace Championship.Services
 {
-    public class TournamentService(IUnitOfWork unit, IMapper mapper) : ITournamentService
+    public class TournamentService(IUnitOfWork unit, IMapper mapper) :  ITournamentService
     {
         public async Task<TournamentDTO> AddAsync(TournamentCreateDTO dto)
         {
@@ -32,37 +33,53 @@ namespace Championship.Services
             return await unit.TournamentRepository.AnyAsync();
         }
 
-        public async Task<IEnumerable<TournamentDTO>> GetAllAsync(bool includeGames)
+        public async Task<(IEnumerable<TournamentDTO> companyDtos, MetaData metaData)> GetAllAsync(TournamentRequestParams  requestParams)
         {
-            return mapper.Map<IEnumerable<TournamentDTO>>(await unit.TournamentRepository.GetAllAsync(includeGames));
+            PagedList<Tournament> pagedList = await unit.TournamentRepository.GetAllAsync(requestParams);
+            IEnumerable<TournamentDTO> dtos = mapper.Map<IEnumerable<TournamentDTO>>(pagedList.Items);
+            return (dtos, pagedList.MetaData);
         }
 
-        public async Task<IEnumerable<TournamentDTO>> GetAllAsync(Expression<Func<Tournament, bool>> conditions)
+        public async Task<(IEnumerable<TournamentDTO> companyDtos, MetaData metaData)> GetAllAsync(Expression<Func<Tournament, bool>> conditions, TournamentRequestParams  requestParams)
         {
-            return mapper.Map<IEnumerable<TournamentDTO>>(await unit.TournamentRepository.GetAllAsync(conditions));
+            PagedList<Tournament> pagedList = await unit.TournamentRepository.GetAllAsync(conditions, requestParams);
+            IEnumerable<TournamentDTO> dtos = mapper.Map<IEnumerable<TournamentDTO>>(pagedList.Items);
+            return (dtos, pagedList.MetaData);
         }
 
-        public async Task<TournamentDTO?> GetAsync(Expression<Func<Tournament, bool>> conditions, bool includeGames = false)
+        public async Task<TournamentDTO?> GetAsync(int id)
         {
-            return mapper.Map<TournamentDTO>(await unit.TournamentRepository.GetAsync(conditions, includeGames));
+            return mapper.Map<TournamentDTO>(await unit.TournamentRepository.GetAsync(id));
+        }
+        public async Task<TournamentDTO?> GetAsync(int id, TournamentRequestParams  requestParams)
+        {
+            return mapper.Map<TournamentDTO>(await unit.TournamentRepository.GetAsync(id, requestParams));
         }
 
+        public async Task<TournamentDTO?> GetAsync(Expression<Func<Tournament, bool>> conditions, TournamentRequestParams  requestParams)
+        {
+            return mapper.Map<TournamentDTO>(await unit.TournamentRepository.GetAsync(conditions, requestParams));
+        }
         public async Task RemoveAsync(int id)
         {
             Tournament? entity = await unit.TournamentRepository.GetAsync(t => t.Id == id) ?? throw new NullReferenceException("Tournament not found");
             unit.TournamentRepository.Remove(entity);
         }
 
-        public async Task PutAsync(int id, TournamentUpdateDTO dto)
+        public async Task<TournamentDTO> PutAsync(int id, TournamentUpdateDTO dto)
         {
-            mapper.Map(dto, await unit.TournamentRepository.GetAsync(t => t.Id == id));
+            Tournament? tournamentToPut = await unit.TournamentRepository.GetAsync(t => t.Id == id) ?? throw new NullReferenceException("Tournament not found");
+
+            mapper.Map(dto, tournamentToPut);
 
             await unit.CompleteAsync();
+
+            return mapper.Map<TournamentDTO>(tournamentToPut);
         }
 
-        public async Task PatchAsync(int id, JsonPatchDocument<TournamentUpdateDTO> patchDocument)
+        public async Task<TournamentDTO> PatchAsync(int id, JsonPatchDocument<TournamentUpdateDTO> patchDocument)
         {
-            var tournamentToPatch = await unit.TournamentRepository.GetAsync(g => g.Id == id);
+            var tournamentToPatch = await unit.TournamentRepository.GetAsync(t => t.Id == id) ?? throw new NullReferenceException("Tournament not found");
 
             var dto = mapper.Map<TournamentUpdateDTO>(tournamentToPatch);
 
@@ -70,6 +87,8 @@ namespace Championship.Services
 
             mapper.Map(dto, tournamentToPatch);
             await unit.CompleteAsync();
+
+            return mapper.Map<TournamentDTO>(tournamentToPatch);
         }
     }
 }
